@@ -14,10 +14,17 @@ slept=`pmset -g log | sed -n "/^$unplugged/,//p" | awk '/Entering Sleep.*[0-9]+ 
 [[ -z $slept ]] && slept=0
 awake=$((onbatt-slept))
 remain=`pmset -g batt | head -n2 | tail -1 | cut -d' ' -f5`
+chargestatus=`pmset -g batt | head -n2 | tail -1 | cut -d' ' -f4 | cut -d ';' -f1` 
+if [ $remain != '(no' ]; then
+	hremain=`date -j -f "%H:%M" "$remain" "+%Hh%Mm"`
+else
+	hremain='(no est. remain time)'
+fi
 humantime hawake $awake
 humantime hslept $slept
-hremain=`date -j -f "%H:%M" "$remain" "+%Hh%Mm"`
+remainpercent=`pmset -g batt | head -n2 | tail -1 | cut -d' ' -f3 | cut -d$'\t' -f2 | cut -d ';' -f1 | cut -d '%' -f1`
 printf "Awake on battery for $hawake (%.1f%%)\n" `echo "$awake*100/$onbatt" | bc -l`
 printf "Slept on battery for $hslept (%.1f%%)\n" `echo "$slept*100/$onbatt" | bc -l`
-printf "Remain on battery for $hremain\n"
+printf "Remain on battery for $hremain (%.1f%%)\n" `echo "$remainpercent" | bc -l`
+printf "Battery Status: $chargestatus \n"
 
